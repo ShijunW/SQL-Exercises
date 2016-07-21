@@ -56,9 +56,77 @@ ORDER BY name, title, stars;
 
 --Q6 For all cases where the same reviewer rated the same movie twice and gave it a higher rating the second time, return the reviewer's name and the title of the movie.
 SELECT name, title
+FROM Movie, Reviewer, Rating R1, Rating R2
+WHERE R1.mID = Movie.mID AND R2.mID = Movie.mID
+  AND R1.rID = R2.rID AND R1.rID = Reviewer.rID
+  AND R1.stars < R2.stars AND R1.ratingDate < R2.ratingDate;
+  
+SELECT name, title
 FROM Movie
 INNER JOIN Rating R1 USING(mID)
 INNER JOIN Rating R2 USING(rID, mID)
 INNER JOIN Reviewer USING(rID)
 WHERE R1.ratingDate < R2.ratingDate AND R1.stars < R2.stars;
 
+--Q7 For each movie that has at least one rating, find the highest number of stars that movie received. Return the movie title and number of stars. Sort by movie title. 
+SELECT title, MAX(stars) as stars
+FROM Movie, Rating
+WHERE Movie.mID = Rating.mID
+GROUP BY Movie.mID
+ORDER BY title;
+
+SELECT title, MAX(stars) as stars
+FROM Movie
+INNER JOIN Rating USING (mId)
+GROUP BY mId
+ORDER BY title;
+
+--Q8 For each movie, return the title and the 'rating spread', that is, the difference between highest and lowest ratings given to that movie. Sort by rating spread from highest to lowest, then by movie title. 
+SELECT title, (MAX(stars)-MIN(stars)) as ratingSpread
+FROM Movie, Rating
+WHERE Movie.mID = Rating.mID
+GROUP BY title
+ORDER BY ratingSpread DESC, title;
+
+SELECT title, (MAX(stars)-MIN(stars)) as ratingSpread
+FROM Movie
+INNER JOIN Rating USING (mID)
+GROUP BY title
+ORDER BY ratingSpread DESC, title;
+
+--Q9 Find the difference between the average rating of movies released before 1980 and the average rating of movies released after 1980. (Make sure to calculate the average rating for each movie, then the average of those averages for movies before 1980 and movies after. Don't just calculate the overall average rating before and after 1980.)
+SELECT (AVG(before1980.avgStars) - AVG(after1980.avgStars)) AS diff
+FROM (SELECT title, AVG(stars) AS avgStars
+      FROM Movie, Rating
+      WHERE year < 1980 AND Movie.mID = Rating.mID
+      GROUP BY title) AS before1980,
+      (SELECT title, AVG(stars) AS avgStars
+      FROM Movie, Rating
+      WHERE year >= 1980 AND Movie.mID = Rating.mID
+      GROUP BY title) AS after1980;
+      
+SELECT (before1980.overAllAvg - after1980.overAllAvg) AS diff
+FROM (SELECT AVG(avgStars) AS overAllAvg
+      FROM (SELECT title, AVG(stars) AS avgStars
+            FROM Movie, Rating
+            WHERE year < 1980 AND Movie.mID = Rating.mID
+            GROUP BY title)
+      )AS before1980,
+      (SELECT AVG(avgStars) AS overAllAvg
+      FROM (SELECT title, AVG(stars) AS avgStars
+            FROM Movie, Rating
+            WHERE year >= 1980 AND Movie.mID = Rating.mID
+            GROUP BY title)
+      )AS after1980;
+      
+SELECT (AVG(before1980.avgStars) - AVG(after1980.avgStars)) AS diff
+FROM (SELECT title, AVG(stars) AS avgStars
+      FROM Movie
+      INNER JOIN Rating USING (mID)
+      WHERE year < 1980
+      GROUP BY title) AS before1980,
+      (SELECT title, AVG(stars) AS avgStars
+      FROM Movie
+      INNER JOIN Rating USING (mID)
+      WHERE year >= 1980
+      GROUP BY title) AS after1980;
