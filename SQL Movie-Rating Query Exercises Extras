@@ -139,8 +139,66 @@ WHERE M1.director = M2.director AND M1.title <> M2.title
 ORDER BY M1.director, M1.title;
 
 --Q10 Find the movie(s) with the highest average rating. Return the movie title(s) and average rating. (Hint: This query is more difficult to write in SQLite than other systems; you might think of it as finding the highest average rating and then choosing the movie(s) with that average rating.)
+SELECT title, AVG(stars) AS maxAvg
+FROM Movie
+INNER JOIN Rating USING (mId)
+GROUP BY mID
+HAVING maxAvg = (SELECT MAX(average)
+                 FROM (SELECT title, AVG(stars) AS average
+                       FROM Movie
+                       INNER JOIN Rating USING (mId)
+                       GROUP BY mId)
+                 );
+                 
+SELECT title, maxAvg
+FROM Movie, (SELECT MAX(average) as maxAvg
+             FROM Movie, (SELECT Movie.mID, avg(stars) as average
+                          FROM Movie, Rating
+                          WHERE Movie.mID = Rating.mID
+                          GROUP BY Movie.mID) AS Grouprating
+             WHERE Movie.mID = Grouprating.mID) AS Maxrating,
+     (SELECT Movie.mID, avg(stars) as average
+      FROM Movie, Rating
+      WHERE Movie.mID = Rating.mID
+      GROUP BY Movie.mID) AS Grouprating
+WHERE Grouprating.average = Maxrating.maxAvg
+  AND Movie.mID = Grouprating.mID;
 
+--Q11 Find the movie(s) with the lowest average rating. Return the movie title(s) and average rating. (Hint: This query may be more difficult to write in SQLite than other systems; you might think of it as finding the lowest average rating and then choosing the movie(s) with that average rating.) 
+SELECT title, AVG(stars) AS minAvg
+FROM Movie
+INNER JOIN Rating USING (mId)
+GROUP BY mID
+HAVING minAvg = (SELECT MIN(average)
+                 FROM (SELECT title, AVG(stars) AS average
+                       FROM Movie
+                       INNER JOIN Rating USING (mId)
+                       GROUP BY mId)
+                 );
+                 
+SELECT title, minAvg
+FROM Movie, (SELECT MIN(average) as minAvg
+             FROM Movie, (SELECT Movie.mID, avg(stars) as average
+                          FROM Movie, Rating
+                          WHERE Movie.mID = Rating.mID
+                          GROUP BY Movie.mID) AS Grouprating
+             WHERE Movie.mID = Grouprating.mID) AS Minrating,
+     (SELECT Movie.mID, avg(stars) as average
+      FROM Movie, Rating
+      WHERE Movie.mID = Rating.mID
+      GROUP BY Movie.mID) AS grouprating
+WHERE Grouprating.average = Minrating.minAvg
+  AND Movie.mID = Grouprating.mID;
 
+--Q12 For each director, return the director's name together with the title(s) of the movie(s) they directed that received the highest rating among all of their movies, and the value of that rating. Ignore movies whose director is NULL.
+SELECT director, title, MAX(stars)
+FROM Movie, Rating
+WHERE Movie.mID = Rating.mID
+  AND director IS NOT NULL
+GROUP BY director;
 
-
-
+SELECT director, title, MAX(stars)
+FROM Movie
+INNER JOIN Rating USING (mID)
+WHERE director IS NOT NULL
+GROUP BY director;
