@@ -87,7 +87,7 @@ ORDER BY grade, name;
 
 --Q7 For each student A who likes a student B where the two are not friends, find if they have a friend C in common (who can introduce them!). For all such trios, return the name and grade of A, B, and C. 
 SELECT DISTINCT A.name, A.grade, B.name, B.grade, C.name, C.grade
-FROM Highschooler A, Highschooler B, Highschooler C, Likes, Friend F1, Friend F2, Likes L1
+FROM Highschooler A, Highschooler B, Highschooler C, Likes L1, Friend F1, Friend F2
 WHERE A.ID = L1.ID1 AND B.ID = L1.ID2 --A likes B
   AND B.ID NOT IN (SELECT ID1 FROM Friend WHERE ID2 = A.ID) --AB not friends
   AND A.ID = F1.ID1 AND C.ID = F1.ID2  --A has friend C
