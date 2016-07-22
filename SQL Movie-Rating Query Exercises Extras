@@ -1,1 +1,146 @@
 --Q1 Find the names of all reviewers who rated Gone with the Wind. 
+SELECT DISTINCT name
+FROM Movie, Reviewer, Rating
+WHERE Movie.title = 'Gone with the Wind'
+   AND Movie.mID = Rating.mID
+   AND Rating.rID = Reviewer.rID;
+   
+SELECT DISTINCT name
+FROM Movie
+INNER JOIN Rating USING (mID)
+INNER JOIN Reviewer USING (rID)
+WHERE Movie.title = 'Gone with the Wind';
+
+--Q2 For any rating where the reviewer is the same as the director of the movie, return the reviewer name, movie title, and number of stars. 
+SELECT name, title, stars
+FROM Movie, Reviewer, Rating
+WHERE Movie.director = Reviewer.name
+   AND Reviewer.rID = Rating.rID
+   AND Movie.mID = Rating.mID;
+   
+SELECT name, title, stars
+FROM Movie
+INNER JOIN Rating USING (mID)
+INNER JOIN Reviewer USING (rID)
+WHERE Movie.director = Reviewer.name;
+
+--Q3 Return all reviewer names and movie names together in a single list, alphabetized. (Sorting by the first name of the reviewer and first word in the title is fine; no need for special processing on last names or removing "The".) 
+SELECT name
+FROM Reviewer
+UNION
+SELECT title AS name
+FROM Movie
+ORDER BY name;
+
+--Q4 Find the titles of all movies not reviewed by Chris Jackson. 
+SELECT title
+FROM Movie
+WHERE mID NOT IN (
+  SELECT mID
+  FROM Reviewer, Rating
+  WHERE Reviewer.rID = Rating.rID
+    AND name = 'Chris Jackson');
+    
+SELECT title
+FROM Movie
+WHERE title NOT IN (
+  SELECT title
+  FROM Movie, Reviewer, Rating
+  WHERE Reviewer.rID = Rating.rID 
+    AND Rating.mID = Movie.mID
+    AND name = 'Chris Jackson');
+
+SELECT title
+FROM Movie
+EXCEPT
+SELECT title
+FROM Movie, Reviewer, Rating
+WHERE Reviewer.rID = Rating.rID 
+  AND Rating.mID = Movie.mID
+  AND name = 'Chris Jackson';
+
+--Q5 For all pairs of reviewers such that both reviewers gave a rating to the same movie, return the names of both reviewers. Eliminate duplicates, don't pair reviewers with themselves, and include each pair only once. For each pair, return the names in the pair in alphabetical order.
+SELECT DISTINCT Re1.name, Re2.name
+FROM Reviewer Re1, Reviewer Re2, Rating Ra1, Rating Ra2
+WHERE Ra1.mID = Ra2.mID
+AND Ra1.rID = Re1.rID
+AND Ra2.rID = Re2.rID
+AND Re1.name < Re2.name
+ORDER BY Re1.name;
+
+SELECT DISTINCT name1, name2
+FROM (SELECT Re1.name as name1, Re2.name as name2
+      FROM Rating Ra1, Rating Ra2, Reviewer Re1, Reviewer Re2
+      WHERE Ra1.mID = Ra2.mID
+      AND Ra1.rID = Re1.rID
+      AND Ra2.rID = Re2.rID
+      AND Re1.name <> Re2.name
+      ORDER BY Re1.name) as Pairs
+WHERE name1 < name2;
+
+--Q6 For each rating that is the lowest (fewest stars) currently in the database, return the reviewer name, movie title, and number of stars. 
+SELECT name, title, stars
+FROM Movie, Reviewer, Rating
+WHERE stars = (SELECT MIN(stars) FROM Rating)
+  AND Rating.mID = Movie.mID
+  AND Rating.rID = Reviewer.rID;
+  
+SELECT name, title, stars
+FROM Movie
+INNER JOIN Rating USING (mID)
+INNER JOIN Reviewer USING (rID)
+WHERE stars IN (SELECT MIN(stars) FROM Rating);
+
+--Q7 List movie titles and average ratings, from highest-rated to lowest-rated. If two or more movies have the same average rating, list them in alphabetical order.
+SELECT title, AVG(stars)
+FROM Movie, Rating
+WHERE Movie.mID=Rating.mID
+GROUP BY Movie.mID
+ORDER BY AVG(stars) DESC, title;
+
+SELECT title, AVG(stars)
+FROM Movie
+INNER JOIN Rating USING (mID)
+GROUP BY title
+ORDER BY AVG(stars) DESC, title;
+
+--Q8 Find the names of all reviewers who have contributed three or more ratings. (As an extra challenge, try writing the query without HAVING or without COUNT.) 
+SELECT name
+FROM Reviewer
+WHERE 3 <= (SELECT COUNT(*)
+            FROM Rating
+            WHERE Rating.rId = Reviewer.rId);
+            
+SELECT name
+FROM Reviewer
+INNER JOIN Rating USING (rId)
+GROUP BY name
+HAVING COUNT(*) >= 3;
+
+SELECT name
+FROM (SELECT rID, SUM(1) AS totalRatings
+      FROM rating
+      GROUP BY rID
+      )
+INNER JOIN reviewer USING (rID)
+WHERE totalRatings >= 3;
+
+--Q9 Some directors directed more than one movie. For all such directors, return the titles of all movies directed by them, along with the director name. Sort by director name, then movie title. (As an extra challenge, try writing the query both with and without COUNT.)
+SELECT title, director
+FROM Movie M1
+WHERE 1 < (SELECT COUNT(*)
+            FROM Movie M2
+            WHERE M1.director = M2.director)
+ORDER BY director, title;
+
+SELECT M1.title, M1.director
+FROM Movie M1, Movie M2
+WHERE M1.director = M2.director AND M1.title <> M2.title
+ORDER BY M1.director, M1.title;
+
+--Q10 Find the movie(s) with the highest average rating. Return the movie title(s) and average rating. (Hint: This query is more difficult to write in SQLite than other systems; you might think of it as finding the highest average rating and then choosing the movie(s) with that average rating.)
+
+
+
+
+
