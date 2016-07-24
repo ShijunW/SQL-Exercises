@@ -82,17 +82,17 @@ GROUP BY mId
 ORDER BY title;
 
 --Q8 For each movie, return the title and the 'rating spread', that is, the difference between highest and lowest ratings given to that movie. Sort by rating spread from highest to lowest, then by movie title. 
-SELECT title, (MAX(stars)-MIN(stars)) as ratingSpread
-FROM Movie, Rating
-WHERE Movie.mID = Rating.mID
-GROUP BY title
-ORDER BY ratingSpread DESC, title;
-
-SELECT title, (MAX(stars)-MIN(stars)) as ratingSpread
+SELECT title, (MAX(stars)-MIN(stars)) as [rating spread]
 FROM Movie
 INNER JOIN Rating USING (mID)
 GROUP BY title
-ORDER BY ratingSpread DESC, title;
+ORDER BY [rating spread] DESC, title;
+
+SELECT title, (MAX(stars)-MIN(stars)) as [rating spread]
+FROM Movie
+INNER JOIN Rating USING (mID)
+GROUP BY title
+ORDER BY [rating spread] DESC, title;
 
 --Q9 Find the difference between the average rating of movies released before 1980 and the average rating of movies released after 1980. (Make sure to calculate the average rating for each movie, then the average of those averages for movies before 1980 and movies after. Don't just calculate the overall average rating before and after 1980.)
 SELECT (AVG(before1980.avgStars) - AVG(after1980.avgStars)) AS diff
